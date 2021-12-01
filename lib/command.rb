@@ -4,7 +4,7 @@ module Command
   include Hashes
 
   def command
-    command_line = parse
+    command_line = parse; return @playing = false if command_line.nil?
     command = aliases command_line.shift
     return puts 'Not a command!' if command.nil?
     arguments = check_data command_line
@@ -30,16 +30,31 @@ module Command
   end
 
   def aliases cmd
-    ALIASES[cmd.to_sym]
+    ALIASES[cmd.to_sym] unless cmd.nil?
   end
 
-  def inspect arguments
-    puts 'Wrong number of arguments or wrong type!' unless arguments.size >= 1 && arguments.map(&:class).all? { |arg| arg == String }
+  def look arguments
+    return @room.description if arguments.empty?
+    puts 'Wrong argument types!' unless arguments.map(&:class).all? { |arg| arg == String }
+    item = get_instance arguments.first, @room
 
+    item.description
     # If there are more than 1 argument, assume its a depth search
   end
 
   def take arguments
 
+  end
+
+  #Gets item_name's instance and returns if its a Storage instance
+  def get_instance item_name, container_instance
+    return puts "#{container_instance.name} is not a container" unless container_instance.is_a? Storage
+
+    container_instance.storage.each do |item|
+      if item.id == item_name || item_name.include?(item.name[0..(item.name.size * 0.6)])
+        return item
+      end
+    end
+    #There always be the @floor container
   end
 end

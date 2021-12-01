@@ -7,6 +7,7 @@ elements:
 Command/Response system
 - Should work for world interactions, menus and combat
 - Should only parse input, have command list and call methods of other classes
+- Should allow for command aliases
 
 Item and world item system
 - All items/world items should have base features
@@ -15,6 +16,29 @@ Item and world item system
     - Container/Vessal: Can hold items/liquids
       - Inventory/Sip space
       - Additonal description about contents
+
+Room system
+- Should have floor
+  - The floor acts as the rooms inventory, it's just a simple array
+  - It should have a name
+    - This should be useful for auto travel if I decide to impliment such a feature
+  - It should have a description
+    - It should show the rooms name
+    - The description should have flavor text about the room
+    - It should list the items on the floor and world items
+    - It should list npcs
+    - It should list avaliable directions
+  - Should have a surroundings list
+    - This should contain NPC's
+  - Should have entrances/exits
+    - n, e, w, s, nw, ne, sw, se, up, down, in, out
+    - If rooms are connected, their entrance/exit should be opposites
+    - If there is something like a door, gate or rubbish in the way, the player must interact with the obstacle
+  - There should be triggered events
+    - It should be able to post additional flavor text
+    - It should be able to spawn items and world items
+    - It should be able to spawn npcs
+    - All of these should have the option of being one time or not
 
 Player system
 - Should have inventory and carry weight system
