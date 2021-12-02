@@ -1,18 +1,41 @@
 require_relative './archetype'
 require_relative './item'
+require_relative './hashes'
 
-class Room < Storage
+class Room
   include Archetype
+  include Storage
+  include Hashes
 
-  def initialize(name, desc, *params)
+  def initialize name, desc, *params
     @name, @description = name, desc
     @floor = []
-    generate_room(params) unless params.empty?
+    generate_items(params) unless params.empty?
   end
 
-  def generate_room(params)
-    params.each do |item_name|
-      add_item *ARCHETYPES[item_name]
+  def generate_items params, container = self
+    item = create_item_type ARCHETYPES[params.shift]
+    if params.first.is_a? Array
+      item_child = params.shift
+      generate_items item_child, item 
+    end
+
+    container.storage << item
+    generate_items params, container unless params.empty?
+  end
+
+  def create_item_type archetype
+    item_class = archetype.last
+
+    case
+    when item_class == :WC
+      add_world_container *archetype[0..-2]
+    when item_class == :W
+      add_world_item *archetype[0..-2]
+    when item_class == :C
+      add_container *archetype[0..-2]
+    else
+      add_item *archetype[0..-2]
     end
   end
 

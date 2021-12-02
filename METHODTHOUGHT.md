@@ -24,3 +24,19 @@ takes command/alias and returns command in symbol form
 - calls #aliases by shifting command line and unshifts if command is returned, dont return if nil is returned so menu code can be implimented later
 - if alias found, call command and pass arguments
 - else, lecture the user
+
+### \#search_container(storage_arguments, container_instance)
+Digs through container_instance until it finds first element of storage_arguments
+- #reverse_each on storage_Arguments
+- #each on container_intance storage items and check if their name equals current storage_arguments interaction name
+- if so, container_instance = container_instance iteraction
+- if not, return nil
+
+---
+
+### room generation
+
+rooms should have the ability to take a list, asign all of their values then generate all of the items that should be included in them
+forumla for array/arguments: [name, description, items: []]
+items followed by an array should be considered storage items, ie. ['forest', 'trees all around', ['table', ['apple'], 'spud']]
+[name, description, items: []] ['forest', 'trees all around', ['table', ['apple'], 'spud']]

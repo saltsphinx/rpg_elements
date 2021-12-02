@@ -36,7 +36,13 @@ module Command
   def look arguments
     return @room.description if arguments.empty?
     puts 'Wrong argument types!' unless arguments.map(&:class).all? { |arg| arg == String }
-    item = get_instance arguments.first, @room
+    
+    if arguments.size >= 2
+      container = search_container arguments[1.. -1]; return puts "One of these aren't a container, #{arguments[1.. -1]}" if container.nil?
+      item = get_instance arguments.first, container; return puts "#{arguments.first} not founded in container." if item.nil?
+    else
+      item = get_instance arguments.first, @room; return puts "#{arguments.first} not founded in container." if item.nil?
+    end
 
     item.description
     # If there are more than 1 argument, assume its a depth search
@@ -46,15 +52,27 @@ module Command
 
   end
 
+  def search_container storage_arguments, container_instance = @room.storage
+    storage_arguments.reverse_each do |storage_name|
+      storage_instance = get_instance(storage_name, container_instance)
+      storage_instance.nil? ? return : container_instance = storage_instance
+    end
+
+    container_instance
+  end
+
   #Gets item_name's instance and returns if its a Storage instance
+  #Expects string and object with @storage variable and subclass of Storage
   def get_instance item_name, container_instance
-    return puts "#{container_instance.name} is not a container" unless container_instance.is_a? Storage
+    return puts "#{container_instance.class} is not a container" unless container_instance.is_a? Storage
 
     container_instance.storage.each do |item|
-      if item.id == item_name || item_name.include?(item.name[0..(item.name.size * 0.6)])
+      if item.id == item_name || item_name.include?(item.name[0.. (item.name.size * 0.6)])
         return item
       end
     end
+
+    return
     #There always be the @floor container
   end
 end

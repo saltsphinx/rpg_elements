@@ -6,7 +6,7 @@ class RPG
   include Command
 
   def initialize
-    @room = Room.new('patchInForst', "you stand in a small patch of trees whose canopy obscure the sky above.", :apple, :apple, :spud)
+    @room = Room.new('patchInForst', "you stand in a small patch of trees whose canopy obscure the sky above.", :apple, :table, [:apple, :bowl, [:spud]])
     @playing = true
   end
 
