@@ -52,7 +52,9 @@ module Command
 
   end
 
-  def search_container storage_arguments, container_instance = @room.storage
+  # Should take array with storage item names and a container instance that defaults to room's floor
+  # Should return storage instance thats first object in storage_arguments or nil if one of arguments werent found
+  def search_container storage_arguments, container_instance = @room
     storage_arguments.reverse_each do |storage_name|
       storage_instance = get_instance(storage_name, container_instance)
       storage_instance.nil? ? return : container_instance = storage_instance
