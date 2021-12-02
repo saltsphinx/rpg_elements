@@ -5,23 +5,26 @@ module Command
 
   def command
     command_line = parse; return @playing = false if command_line.nil?
+
     command = aliases command_line.shift
     return puts 'Not a command!' if command.nil?
+
     arguments = check_data command_line
 
-    self.send(command, arguments)
+    send(command, arguments)
   end
 
   def parse
     input = gets; return if input.nil?
-    command_line = input.chomp.strip.split /\s+/
-    command_line.reject! { |token| token.match /[^0-9a-z]|[0-9][a-z]|^$/i }
+
+    command_line = input.chomp.strip.split(/\s+/)
+    command_line.reject! { |token| token.match(/[^0-9a-z]|[0-9][a-z]|^$/i) }
     command_line
   end
 
   def check_data arguments
     arguments.map do |argument|
-      if argument.match /^\d$/
+      if argument.match(/^\d$/)
         argument.to_i
       else
         argument
@@ -35,21 +38,31 @@ module Command
 
   def look arguments
     return @room.description if arguments.empty?
+
     puts 'Wrong argument types!' unless arguments.map(&:class).all? { |arg| arg == String }
-    
-    if arguments.size >= 2
-      container = search_container arguments[1.. -1]; return puts "One of these aren't a container, #{arguments[1.. -1]}" if container.nil?
-      item = get_instance arguments.first, container; return puts "#{arguments.first} not founded in container." if item.nil?
-    else
-      item = get_instance arguments.first, @room; return puts "#{arguments.first} not founded in container." if item.nil?
-    end
+
+    item = get_item arguments; return if item.nil?
 
     item.description
     # If there are more than 1 argument, assume its a depth search
   end
 
   def take arguments
+    return puts 'Specific an item' if arguments.empty?
 
+    item = get_item arguments; return if item.nil?
+  end
+
+  def get_item arguments
+    if arguments.size >= 2
+      container = search_container arguments[1..-1]; return puts "One of these aren't a container, #{arguments[1..-1]}" if container.nil?
+
+      item = get_instance arguments.first, container; return puts "#{arguments.first} not founded in container." if item.nil?
+      item
+    else
+      item = get_instance arguments.first, @room; return puts "#{arguments.first} not founded in container." if item.nil?
+      item
+    end
   end
 
   # Should take array with storage item names and a container instance that defaults to room's floor
@@ -63,18 +76,16 @@ module Command
     container_instance
   end
 
-  #Gets item_name's instance and returns if its a Storage instance
-  #Expects string and object with @storage variable and subclass of Storage
+  # Gets item_name's instance and returns if its a Storage instance
+  # Expects string and object with @storage variable and subclass of Storage
   def get_instance item_name, container_instance
     return puts "#{container_instance.class} is not a container" unless container_instance.is_a? Storage
 
     container_instance.storage.each do |item|
-      if item.id == item_name || item_name.include?(item.name[0.. (item.name.size * 0.6)])
-        return item
-      end
+      return item if item.id == item_name || item_name.include?(item.name[0..(item.name.size * 0.6)])
     end
 
-    return
-    #There always be the @floor container
+    return # Returns container_instance's storage otherwise
+    # There always be the @floor container since ALL items in the room are accessed through
   end
 end
