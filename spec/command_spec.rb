@@ -2,7 +2,6 @@ require_relative '../lib/rpg'
 
 describe RPG do
   describe 'Command module' do
-
     describe '#command' do
       subject(:cmd) { described_class.new }
       context 'when command line is [take, \'apple\', \'table\']' do
@@ -11,14 +10,14 @@ describe RPG do
           allow(cmd).to receive(:aliases).and_return(:take)
           allow(cmd).to receive(:take)
 
-          expect(cmd).to receive(:take).with(['apple', 'table'])
+          expect(cmd).to receive(:take).with(%w[apple table])
           cmd.command
         end
       end
 
       context 'when command line is [12take, \'apple\', \'table\']' do
         it 'calls #take with %w[apple table]' do
-          allow(cmd).to receive(:parse).and_return(['12take', 'apple', 'table'])
+          allow(cmd).to receive(:parse).and_return(%w[12take apple table])
           allow(cmd).to receive(:aliases).and_return(nil)
           allow(cmd).to receive(:puts)
 
@@ -71,7 +70,7 @@ describe RPG do
       context 'when arguments don\'t numbers' do
         it 'returns [\'apple12\', \'table\']' do
           result = argument_data.check_data %w[apple12 table]
-          expect(result).to eq(['apple12', 'table'])
+          expect(result).to eq(%w[apple12 table])
         end
       end
     end

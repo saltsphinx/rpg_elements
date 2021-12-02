@@ -6,13 +6,11 @@ class RPG
   include Command
 
   def initialize
-    @room = Room.new('patchInForst', "you stand in a small patch of trees whose canopy obscure the sky above.", :apple, :table, [:apple, :bowl, [:spud]])
+    @room = Room.new('patchInForst', 'you stand in a small patch of trees whose canopy obscure the sky above.', :apple, :table, [:apple, :bowl, [:spud]], :apple)
     @playing = true
   end
 
   def game_cycle
-    while @playing do
-      command
-    end
+    command while @playing
   end
 end

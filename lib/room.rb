@@ -8,7 +8,8 @@ class Room
   include Hashes
 
   def initialize name, desc, *params
-    @name, @description = name, desc
+    @name = name
+    @description = desc
     @floor = []
     generate_items(params) unless params.empty?
   end
@@ -17,7 +18,7 @@ class Room
     item = create_item_type ARCHETYPES[params.shift]
     if params.first.is_a? Array
       item_child = params.shift
-      generate_items item_child, item 
+      generate_items item_child, item
     end
 
     container.storage << item
@@ -27,15 +28,14 @@ class Room
   def create_item_type archetype
     item_class = archetype.last
 
-    case
-    when item_class == :WC
-      add_world_container *archetype[0..-2]
-    when item_class == :W
-      add_world_item *archetype[0..-2]
-    when item_class == :C
-      add_container *archetype[0..-2]
+    if item_class == :WC
+      add_world_container(*archetype[0..-2])
+    elsif item_class == :W
+      add_world_item(*archetype[0..-2])
+    elsif item_class == :C
+      add_container(*archetype[0..-2])
     else
-      add_item *archetype[0..-2]
+      add_item(*archetype[0..-2])
     end
   end
 

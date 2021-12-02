@@ -5,7 +5,9 @@ end
 class Base
   attr_reader(:id, :name)
   def initialize name, desc, weight
-    @name, @description, @weight = name, desc, weight
+    @name = name
+    @description = desc
+    @weight = weight
     @id = name + generate_id
   end
 
@@ -24,7 +26,7 @@ end
 
 class Item < Base
   def initialize name, desc, weight
-    super name, desc, weight 
+    super name, desc, weight
   end
 end
 
@@ -32,8 +34,9 @@ class Container < Item
   include Storage
 
   def initialize name, desc, weight, space
-    super name, desc, weight 
-    @storage, @space = [], space
+    super name, desc, weight
+    @storage = []
+    @space = space
   end
 
   def description
@@ -44,7 +47,7 @@ end
 
 class WorldItem < Base
   def initialize(name, desc, weight)
-    super name, desc, weight 
+    super name, desc, weight
   end
 end
 
@@ -52,8 +55,9 @@ class WorldContainer < WorldItem
   include Storage
 
   def initialize name, desc, weight, space
-    super name, desc, weight 
-    @storage, @space = [], space
+    super name, desc, weight
+    @storage = []
+    @space = space
   end
 
   def description
