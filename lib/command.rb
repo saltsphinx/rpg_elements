@@ -1,7 +1,10 @@
 require_relative './hashes.rb'
+require_relative './config'
+require_relative './player'
 
 module Command
   include Hashes
+  include Config
 
   def command
     command_line = parse; return @playing = false if command_line.nil?
@@ -36,38 +39,56 @@ module Command
     ALIASES[cmd.to_sym] unless cmd.nil?
   end
 
-  def look arguments
+  def look(arguments, player = nil)
+    inventory_binds = Keybinds[:inventory]
     return @room.description if arguments.empty?
 
     puts 'Wrong argument types!' unless arguments.map(&:class).all? { |arg| arg == String }
 
-    item = get_item arguments; return if item.nil?
+    if inventory_binds.include?(arguments.last)
+      first_argument = arguments.first 
+      return @player.display_inventory if inventory_binds.include?(first_argument)
+      arguments.pop
+      player = @player
+    end
 
-    item.description
+    item = find_item(arguments, player); return if item.nil? # item variable is an Array
+
+    item.first.description
     # If there are more than 1 argument, assume its a depth search
   end
 
   def take arguments
-    return puts 'Specific an item' if arguments.empty?
+    return puts 'Specify an item' if arguments.empty?
 
-    item = get_item arguments; return if item.nil?
+    item, container = find_item arguments; return if item.nil? || container.nil?
+
+    return puts "You can't pick this item up." unless [Item, Container].include? item.class
+
+    container.storage.delete item
+    @player.storage << item
+    puts "You pick up #{item.id}"
   end
 
-  def get_item arguments
+  def drop arguments
+
+  end
+
+  def find_item arguments, player = nil
     if arguments.size >= 2
-      container = search_container arguments[1..-1]; return puts "One of these aren't a container, #{arguments[1..-1]}" if container.nil?
+      container = search_container(arguments[1..-1], player || @room); return puts "One of these aren't a container, #{arguments[1..-1]}" if container.nil?
 
       item = get_instance arguments.first, container; return puts "#{arguments.first} not founded in container." if item.nil?
-      item
+      return item, container # item instance AND container instance returned
     else
-      item = get_instance arguments.first, @room; return puts "#{arguments.first} not founded in container." if item.nil?
-      item
+      item = get_instance(arguments.first, player || @room); return puts "#{arguments.first} not founded in container." if item.nil?
+      return item, @room
     end
   end
 
   # Should take array with storage item names and a container instance that defaults to room's floor
   # Should return storage instance thats first object in storage_arguments or nil if one of arguments werent found
-  def search_container storage_arguments, container_instance = @room
+  def search_container storage_arguments, container_instance
     storage_arguments.reverse_each do |storage_name|
       storage_instance = get_instance(storage_name, container_instance)
       storage_instance.nil? ? return : container_instance = storage_instance
@@ -78,11 +99,12 @@ module Command
 
   # Gets item_name's instance and returns if its a Storage instance
   # Expects string and object with @storage variable and subclass of Storage
+  # Should return item instance
   def get_instance item_name, container_instance
-    return puts "#{container_instance.class} is not a container" unless container_instance.is_a? Storage
+    return puts "#{container_instance.class} is not a container" unless container_instance.is_a?(Storage) || container_instance.is_a?(Player)
 
     container_instance.storage.each do |item|
-      return item if item.id == item_name || item_name.include?(item.name[0..(item.name.size * 0.6)])
+      return item if item_name.include?(item.id[0..(item.id.size * 0.6)]) || item_name == item.name
     end
 
     return # Returns container_instance's storage otherwise

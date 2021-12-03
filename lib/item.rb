@@ -3,7 +3,7 @@ module Storage
 end
 
 class Base
-  attr_reader(:id, :name)
+  attr_reader(:id, :name, :weight)
   def initialize name, desc, weight
     @name = name
     @description = desc
@@ -16,7 +16,7 @@ class Base
   end
 
   def description
-    puts "#{name}, #{text}"
+    puts "#{id}, #{text}"
   end
 
   def text

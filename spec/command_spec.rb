@@ -100,5 +100,11 @@ describe RPG do
         end
       end
     end
+
+    describe '#get_instance' do
+      subject(:item_instance) { described_class.new }
+
+      context ''
+    end
   end
 end
