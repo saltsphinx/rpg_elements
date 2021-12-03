@@ -19,6 +19,14 @@ class Room
     if params.first.is_a? Array
       item_child = params.shift
       generate_items item_child, item
+    elsif params.first.is_a? Integer
+      if params.first > item.stack_limit
+        params[0] -= item.stack_limit
+        params.unshift(item.name.to_sym)
+        item.quantity = item.stack_limit
+      else
+        item.quantity = params.shift
+      end
     end
 
     container.storage << item
@@ -28,14 +36,12 @@ class Room
   def create_item_type archetype
     item_class = archetype.last
 
-    if item_class == :WC
-      add_world_container(*archetype[0..-2])
-    elsif item_class == :W
-      add_world_item(*archetype[0..-2])
-    elsif item_class == :C
-      add_container(*archetype[0..-2])
-    else
-      add_item(*archetype[0..-2])
+    case item_class
+    when :C then add_container(*archetype[0..-2])
+    when :S then add_stackable(*archetype[0..-2])
+    when :W then add_world_item(*archetype[0..-2])
+    when :WC then add_world_container(*archetype[0..-2])
+    else add_item(*archetype[0..-2])
     end
   end
 

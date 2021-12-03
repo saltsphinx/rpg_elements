@@ -10,7 +10,7 @@ class RPG
   include Config
 
   def initialize
-    @room = Room.new('patchInForst', 'you stand in a small patch of trees whose canopy obscure the sky above.', :apple, :table, [:apple, :bowl, [:spud]], :apple, :table)
+    @room = Room.new('patchInForst', 'you stand in a small patch of trees whose canopy obscure the sky above.', :strawberry, 9, :apple, :table, [:apple, :bowl, [:spud]], :apple, :table)
     @player = Player.new('Hero')
     @playing = true
   end

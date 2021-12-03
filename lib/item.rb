@@ -26,7 +26,21 @@ end
 
 class Item < Base
   def initialize name, desc, weight
-    super name, desc, weight
+    super(name, desc, weight)
+  end
+end
+
+class Stackable < Item
+  attr_accessor :quantity
+  attr_reader :stack_limit
+
+  def initialize name, desc, weight, stack_limit
+    super(name, desc, weight)
+    @stack_limit, @quantity = stack_limit, 1
+  end
+
+  def description
+    puts "#{quantity}x #{id}, #{text}"
   end
 end
 
