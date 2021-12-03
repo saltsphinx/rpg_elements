@@ -86,6 +86,6 @@ module Command
     end
 
     return # Returns container_instance's storage otherwise
-    # There always be the @floor container since ALL items in the room are accessed through
+    # There always be the @floor container since ALL items in the room are accessed through it
   end
 end
