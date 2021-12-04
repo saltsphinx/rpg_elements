@@ -6,6 +6,8 @@ require_relative './config'
 
 # This is the game handler that contains and handles all of the modules
 class RPG
+  attr_accessor :room, :player
+
   include Command
   include Config
 

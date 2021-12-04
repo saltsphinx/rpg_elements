@@ -22,6 +22,10 @@ class Base
   def text
     @description
   end
+
+  def display
+    id
+  end
 end
 
 class Item < Base
@@ -41,6 +45,10 @@ class Stackable < Item
 
   def description
     puts "#{quantity}x #{id}, #{text}"
+  end
+
+  def display
+    "#{quantity}x " + super
   end
 end
 
