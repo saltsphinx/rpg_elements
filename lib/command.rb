@@ -1,12 +1,14 @@
 # frozen-string-literal: true
 
-require_relative './hashes.rb'
+require_relative './hashes'
 require_relative './config'
 require_relative './player'
+require_relative './archetype'
 
 module Command
   include Hashes
   include Config
+  include Archetype
 
   # parse, aliases
   def command
@@ -71,7 +73,7 @@ module Command
 
     if Keybinds[:inventory].include?(arguments.last)
       arguments.pop
-      return "Can't take directly from inventory" if arguments.size < 2
+      return puts 'Specify an item within a container in your inventory' if arguments.empty? || arguments.size < 2
       container = player.storage
     else
       container = room.storage
@@ -85,8 +87,9 @@ module Command
 
     if item.is_a?(Stackable) && item.quantity > quantity
       item.quantity -= quantity
-      @player.storage << item
-      return
+      stackable_item = create_item_type(ARCHETYPES[item.name.to_sym])
+      stackable_item.quantity = quantity
+      return @player.storage << stackable_item
     end
     
     container.delete(item)
