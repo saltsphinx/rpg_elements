@@ -1,3 +1,5 @@
+# frozen-string-literal: true
+
 require_relative './hashes.rb'
 require_relative './config'
 require_relative './player'
@@ -6,11 +8,14 @@ module Command
   include Hashes
   include Config
 
+  # parse, aliases
   def command
-    command_line = parse; return @playing = false if command_line.nil?
+    puts "\n"
+    command_line = parse
+    return @playing = false if command_line.nil?
 
-    command = aliases command_line.shift
-    return puts 'Not a command!' if command.nil?
+    command = aliases(command_line.shift)
+    return puts('Not a command!') if command.nil?
 
     arguments = check_data command_line
 
@@ -18,7 +23,8 @@ module Command
   end
 
   def parse
-    input = gets; return if input.nil?
+    input = gets
+    return if input.nil?
 
     command_line = input.chomp.strip.split(/\s+/)
     command_line.reject! { |token| token.match(/[^0-9a-z]|[0-9][a-z]|^$/i) }
@@ -39,76 +45,93 @@ module Command
     ALIASES[cmd.to_sym] unless cmd.nil?
   end
 
-  def look(arguments, player = nil)
-    inventory_binds = Keybinds[:inventory]
+  def look(arguments)
     return @room.description if arguments.empty?
 
     puts 'Wrong argument types!' unless arguments.map(&:class).all? { |arg| arg == String }
 
-    if inventory_binds.include?(arguments.last)
-      first_argument = arguments.first 
-      return @player.display_inventory if inventory_binds.include?(first_argument)
+    if Keybinds[:inventory].include?(arguments.last)
+      return @player.display_inventory if arguments.one?
       arguments.pop
-      player = @player
+      container = player.storage
+    else
+      container = room.storage
     end
 
-    item = find_item(arguments, player); return if item.nil? # item variable is an Array
+    item = find_item(arguments, container)
+    return if item.nil?
 
     item.first.description
-    # If there are more than 1 argument, assume its a depth search
   end
 
   def take(arguments)
     return puts 'Specify an item' if arguments.empty?
 
-    item, container = find_item(arguments); return if item.nil? || container.nil?
+    quantity = (arguments.first.is_a?(Integer) ? arguments.shift : 1)
+
+    if Keybinds[:inventory].include?(arguments.last)
+      arguments.pop
+      return "Can't take directly from inventory" if arguments.size < 2
+      container = player.storage
+    else
+      container = room.storage
+    end # Create aux method for this
+
+    item, container = find_item(arguments, container)
+    return if item.nil? || container.nil?
 
     return puts "You can't pick this item up." unless item.is_a? Item
+    # Create predicate method for the above two
 
-    container.storage.delete item
-    @player.storage << item
-    puts "You pick up #{item.id}"
+    if item.is_a?(Stackable) && item.quantity > quantity
+      item.quantity -= quantity
+      @player.storage << item
+      return
+    end
+    
+    container.delete(item)
+    player.storage << item
+    puts "You pick up #{item.display}"
   end
 
   def drop(arguments)
-    return puts 'Specify an item' if arguments.empty?
+    return puts('Specify an item') if arguments.empty?
 
   end
 
-  def find_item(arguments, player = nil)
-    if arguments.size >= 2
-      container = search_container(arguments[1..-1], player || @room); return puts "One of these aren't a container, #{arguments[1..-1]}" if container.nil?
+  def find_item(arguments, container)
+    item_query = arguments.shift
 
-      item = get_instance(arguments.first, container); return puts("#{arguments.first} not founded in container.") if item.nil?
-      return item, container # item instance AND container instance returned
-    else
-      item = get_instance(arguments.first, player || @room); return puts("#{arguments.first} not founded in container.") if item.nil?
-      return item, @room
-    end
+      if arguments.any?
+        container = search_nested_container(arguments, container)
+        return if container.nil?
+      end
+
+      item = get_item(item_query, container)
+      return item, container if item
   end
 
   # Should take array with storage item names and a container instance that defaults to room's floor
   # Should return storage instance thats first object in storage_arguments or nil if one of arguments werent found
-  def search_container(storage_arguments, container_instance)
-    storage_arguments.reverse_each do |storage_name|
-      storage_instance = get_instance(storage_name, container_instance)
-      storage_instance.nil? ? return : container_instance = storage_instance
+  def search_nested_container(storage_arguments, container)
+    storage_arguments.reverse_each do |storage_query|
+      storage_instance = get_item(storage_query, container)
+
+      if storage_instance.is_a?(Storage)
+        container = storage_instance.storage
+      else
+        return puts("#{storage_query} isn't a storage item.")
+      end
     end
 
-    container_instance
+    return container
   end
 
-  # Gets item_name's instance and returns if its a Storage instance
-  # Expects string and object with @storage variable and subclass of Storage
-  # Should return item instance
-  def get_instance(item_name, container_instance)
-    return puts "#{container_instance.class} is not a container" unless container_instance.is_a?(Storage) || container_instance.is_a?(Player)
+  #Finds item whos name matches the query in container
+  def get_item(item_query, container)
+    return puts "#{container.class} not an Array" unless container.is_a?(Array)
 
-    container_instance.storage.each do |item|
-      return item if [item.id[0..-1], item.id[0..-2], item.id[0..-3], item.id[0..-4]].include?(item_name) || item_name == item.name
-    end
-
-    return # Returns container_instance's storage otherwise
-    # There always be the @floor container since ALL items in the room are accessed through it
+    item = container.find { |item| item.id.start_with?(item_query) && (item_query.tr('0-9', '').size.to_f / item.name.size)*100 >= 50 }
+    item.is_a?(Base) ? item : puts("#{item_query} isn't an item.")
   end
 end
